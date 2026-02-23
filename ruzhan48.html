@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝐑𝐔𝐐𝐇𝐀𝐍 𝐎𝐅𝐅𝐈𝐂𝐈𝐀𝐋</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDK (Version 8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <style>
+        :root {
+            --primary-yellow: #ffcf33;
+            --black-bg: #000000;
+            --card-dark: #1a1a1a;
+            --text-white: #ffffff;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background: var(--black-bg);
+            color: var(--text-white);
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            padding-bottom: 110px;
+        }
+
+        /* --- Auth Section Styles --- */
+        #authSection {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .auth-container { width: 90%; max-width: 400px; background: var(--card-dark); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; overflow: hidden; }
+        
+        .auth-container img { 
+            width: calc(100% + 60px); 
+            background: #ffffff; 
+            margin: -30px -30px 20px -30px; 
+            padding: 20px 0; 
+            object-fit: contain;
+            height: 80px;
+        }
+
+        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
+        .auth-tab { flex: 1; padding: 10px; cursor: pointer; color: #888; }
+        .auth-tab.active { color: var(--primary-yellow); border-bottom: 2px solid var(--primary-yellow); }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+
+        .top-nav {
+            background: #ffffff;
+            padding: 0 20px;
+            display: flex;
+            justify-content: flex-end; 
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            height: 70px;
+        }
+        .nav-logo { 
+            position: absolute;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; align-items: center; 
+            height: 100%;
+        }
+        .nav-logo img { width: 220px; height: 70px; object-fit: contain; }
+
+        .sidebar {
+            position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+            background: #111; z-index: 3000; transition: 0.4s;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2999;
+        }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 15px 10px; color: #ccc; text-decoration: none;
+            border-bottom: 1px solid #222; cursor: pointer;
+        }
+        .lang-select { margin-top: 20px; padding: 10px; background: #222; border: 1px solid var(--primary-yellow); color: #fff; width: 100%; border-radius: 10px; }
+
+        .full-panel {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 4000;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .back-btn { color: var(--primary-yellow); cursor: pointer; font-size: 18px; margin-bottom: 20px; display: inline-block; font-weight: bold;}
+        .panel-card { background: var(--card-dark); padding: 20px; border-radius: 20px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .panel-card h2 { color: var(--primary-yellow); margin-top: 0; text-align: center; }
+
+        /* --- Refer Panel Styles --- */
+        .refer-balance-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+            padding: 25px;
+            border-radius: 25px;
+            border: 1px solid #333;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 4px solid var(--primary-yellow);
+        }
+        .refer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .refer-option-card {
+            background: #151515;
+            padding: 20px 10px;
+            border-radius: 20px;
+            border: 1px solid #222;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .refer-option-card:active { transform: scale(0.95); }
+        .refer-option-card i {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+            color: var(--primary-yellow);
+        }
+        .refer-option-card .opt-label { font-size: 13px; color: #aaa; margin-bottom: 5px; }
+        .refer-option-card .opt-value { font-size: 14px; font-weight: bold; color: #fff; }
+
+        .job-btn { display: block; text-align: center; padding: 12px; margin: 10px 0; border-radius: 10px; text-decoration: none; font-weight: bold; }
+        .work-btn { background: var(--primary-yellow); color: #000; }
+        .video-btn { background: #ff0000; color: #fff; }
+        .input-group { margin-top: 15px; }
+        .input-group label { display: block; margin-bottom: 8px; color: #bbb; font-size: 14px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border-color); color: #fff; border-radius: 10px; box-sizing: border-box; }
+
+        .submit-work-btn { width: 100%; padding: 15px; background: #4CAF50; color: #fff; border: none; border-radius: 10px; margin-top: 20px; font-weight: bold; cursor: pointer; }
+
+        /* --- History Styles --- */
+        .history-container { margin-top: 20px; }
+        .history-card {
+            background: #151515; border: 1px solid #222; padding: 15px; border-radius: 18px; margin-bottom: 15px;
+            border-left: 4px solid var(--primary-yellow); position: relative; overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .history-title { font-weight: 700; color: #fff; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .history-title i { color: var(--primary-yellow); font-size: 14px; }
+        
+        .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-pending { background: #3d3416; color: #ffcf33; border: 1px solid #5c4e1d; }
+        .status-approved { background: #1b4d2e; color: #4CAF50; border: 1px solid #276d41; }
+        .status-rejected { background: #4d1b1b; color: #ff4444; border: 1px solid #6d2727; }
+
+        .history-body { display: flex; justify-content: space-between; align-items: flex-end; font-size: 13px; color: #aaa; margin-top: 10px; border-top: 1px solid #222; padding-top: 10px; }
+        .amount-text { color: var(--primary-yellow); font-weight: 800; font-size: 16px; }
+        
+        .history-prayer-row {
+            display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; padding-top: 8px; border-top: 1px dashed #333;
+        }
+        .mini-prayer-tag {
+            font-size: 10px; padding: 2px 6px; border-radius: 5px; display: flex; align-items: center; gap: 4px; font-weight: 600;
+        }
+        .p-tag-yes { background: #1b4d2e33; color: #4CAF50; border: 1px solid #1b4d2e; }
+        .p-tag-no { background: #4d1b1b33; color: #f44336; border: 1px solid #4d1b1b; }
+
+        .tutorial-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .tutorial-item { background: #111; padding: 15px; border-radius: 15px; border: 1px solid var(--border-color); text-align: center; cursor: pointer; }
+        .tutorial-item i { font-size: 30px; color: #ff0000; margin-bottom: 10px; display: block; }
+        .tutorial-item span { font-size: 11px; font-weight: bold; display: block; color: #fff; }
+
+        .profile-area { 
+            background: var(--primary-yellow); 
+            padding: 30px 20px 80px 20px; 
+            border-bottom-left-radius: 40px; 
+            border-bottom-right-radius: 40px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            position: relative;
+            min-height: 110px; 
+        }
+        .user-avatar { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #000; overflow: hidden; background: #fff; }
+        .user-avatar img { width: 100%; height: 100%; object-fit: contain; }
+        .user-info { color: #000; flex: 1; }
+        .user-name { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+        .user-id-box { background: rgba(0,0,0,0.1); padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-top: 5px; display: inline-block; }
+
+        .id-status-badge { font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; margin-top: 5px; display: inline-block; text-transform: uppercase; }
+        .status-active { background: #1b4d2e; color: #4CAF50; }
+        .status-inactive { background: #4d1b1b; color: #f44336; }
+        .activate-btn-ui { position: absolute; right: 20px; top: 40px; background: #000; color: var(--primary-yellow); padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; border: 1px solid #333; }
+
+        .stats-container { 
+            display: flex; 
+            gap: 15px; 
+            margin: -50px 20px 20px 20px; 
+            position: relative;
+            z-index: 10;
+        }
+        .stat-card { 
+            flex: 1; 
+            background: #1a1a1a; 
+            padding: 20px 15px; 
+            border-radius: 20px; 
+            border: 1px solid #333; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .stat-icon { 
+            width: 45px; 
+            height: 45px; 
+            background: #222; 
+            border-radius: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--primary-yellow); 
+            font-size: 22px; 
+            border: 1px solid #333;
+        }
+        .stat-text .stat-label { font-size: 11px; color: #888; margin-bottom: 2px; }
+        .stat-text .stat-value { font-size: 15px; font-weight: bold; color: #fff; }
+        
+        .job-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 10px 20px; margin-bottom: 20px; }
+        .job-item { text-align: center; cursor: pointer; }
+        .job-icon-box { background: var(--card-dark); width: 55px; height: 55px; margin: 0 auto 8px; border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); }
+        .job-icon-box i { font-size: 24px; }
+        .job-item span { font-size: 11px; font-weight: 600; color: #ccc; display: block; }
+
+        .invite-section { background: var(--card-dark); margin: 10px 20px; padding: 20px; border-radius: 25px; border: 1px solid var(--border-color); text-align: center; }
+        .invite-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .refer-box { background: #000; border: 2px solid var(--primary-yellow); border-radius: 15px; display: flex; justify-content: space-between; align-items: center; padding: 5px 5px 5px 15px; margin-bottom: 15px; }
+        .refer-box span { font-size: 12px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .copy-btn { background: #000; color: var(--primary-yellow); border: 1px solid var(--primary-yellow); padding: 8px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .social-icons { display: flex; justify-content: center; gap: 15px; margin-top: 10px; }
+        .social-icons i { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #000; background: var(--primary-yellow); cursor: pointer; }
+
+        .quick-links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 20px; margin-top: 20px; }
+        .link-card { background: var(--card-dark); padding: 15px 5px; border-radius: 15px; border-bottom: 3px solid var(--primary-yellow); text-align: center; cursor: pointer; }
+        .link-card i { font-size: 20px; display: block; margin-bottom: 5px; color: #fff; }
+        .link-card span { font-size: 13px; font-weight: bold; }
+
+        .section-heading { text-align: center; font-size: 18px; font-weight: bold; margin: 30px 0 15px; color: #fff; }
+        .admin-card { background: var(--card-dark); margin: 10px 20px; padding: 15px; border-radius: 20px; border-left: 5px solid var(--primary-yellow); display: flex; align-items: center; gap: 15px; position: relative; }
+        .admin-photo { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; background: #fff; }
+        .admin-photo img { width: 100%; height: 100%; object-fit: contain; }
+        .main-admin-badge { position: absolute; right: 15px; top: 15px; background: #3d3416; color: var(--primary-yellow); font-size: 10px; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
+        .message-btn { background: #1d9bf0; color: #fff; border: none; padding: 6px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 5px; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+        .navbar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 1000;}
+        .navbar div { color: #666; text-align: center; font-size: 12px; cursor: pointer; }
+        .navbar div.active { color: var(--primary-yellow); }
+
+        .method-item { background: #222; margin-bottom: 10px; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333;}
+        .method-name { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .method-name img { height: 25px; }
+        .copy-small { background: var(--primary-yellow); color: #000; padding: 4px 8px; border-radius: 5px; font-size: 10px; cursor: pointer; font-weight: bold; }
+
+        .prayer-row { display: flex; align-items: center; justify-content: space-between; background: #222; margin-bottom: 8px; padding: 10px 15px; border-radius: 10px; }
+        .prayer-name { font-weight: bold; font-size: 14px; }
+        .prayer-btns { display: flex; gap: 10px; }
+        .prayer-btn { width: 35px; height: 35px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; background: #444; }
+        .prayer-btn.yes.active { background: #4CAF50; }
+        .prayer-btn.no.active { background: #f44336; }
+
+        .team-member-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #151515; padding: 12px 15px; border-radius: 12px; border: 1px solid #222; margin-bottom: 8px;
+        }
+
+        /* --- Target Offer New Styles --- */
+        .target-card {
+            background: #111; border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            position: relative; overflow: hidden; border-left: 4px solid var(--primary-yellow);
+        }
+        .target-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .target-name { font-weight: bold; color: var(--primary-yellow); font-size: 16px; }
+        .target-reward-tag { background: #3d3416; color: var(--primary-yellow); padding: 3px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        
+        .progress-container { background: #222; height: 12px; border-radius: 10px; width: 100%; margin: 10px 0; overflow: hidden; position: relative; }
+        .progress-bar-fill { background: linear-gradient(90deg, #ffcf33, #ff9800); height: 100%; width: 0%; transition: 1s ease-in-out; }
+        .progress-text { font-size: 11px; color: #888; display: flex; justify-content: space-between; margin-top: 5px; }
+
+        .prize-display { display: flex; align-items: center; gap: 10px; margin-top: 10px; background: rgba(255, 207, 51, 0.05); padding: 8px; border-radius: 8px; }
+        .prize-display i { font-size: 20px; color: var(--primary-yellow); }
+        .prize-display span { font-size: 12px; color: #ccc; }
+
+        .claim-btn {
+            width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; margin-top: 15px;
+            cursor: not-allowed; background: #333; color: #666; transition: 0.3s;
+        }
+        .claim-btn.ready { background: var(--primary-yellow); color: #000; cursor: pointer; box-shadow: 0 0 10px rgba(255, 207, 51, 0.3); }
+        .claim-btn.claimed { background: #1b4d2e; color: #4CAF50; cursor: default; }
+
+        /* --- Islamic Specific Styles --- */
+        .islamic-card { background: var(--card-dark); border: 1px solid var(--border-color); padding: 20px; border-radius: 20px; margin-bottom: 15px; text-align: center; }
+        .arabic-text { font-size: 24px; font-weight: bold; margin: 15px 0; color: #fff; line-height: 1.6; }
+
+        /* --- Income Summary Panel Styles --- */
+        .sum-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .sum-card { background: var(--card-dark); padding: 15px; border-radius: 18px; border: 1px solid var(--border-color); text-align: center; border-bottom: 3px solid var(--primary-yellow); }
+        .sum-card i { color: var(--primary-yellow); font-size: 22px; margin-bottom: 5px; display: block; }
+        .sum-card span { font-size: 11px; color: #888; display: block; }
+        .sum-card strong { font-size: 16px; color: #fff; display: block; margin-top: 3px; }
+
+        .income-log-item { background: #111; border: 1px solid #222; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #4CAF50; }
+        .income-log-left { display: flex; flex-direction: column; gap: 3px; }
+        .income-log-day { font-size: 13px; font-weight: bold; color: var(--primary-yellow); }
+        .income-log-date { font-size: 11px; color: #666; }
+        .income-log-amt { font-size: 15px; font-weight: bold; color: #4CAF50; }
+
+    </style>
+</head>
+<body>
+
+    <div id="authSection">
+        <div class="auth-container">
+            <img src="https://i.ibb.co/CKSzHY89/18714.jpg" alt="Logo">
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab" onclick="switchAuth('login')">লগইন</div>
+                <div class="auth-tab" id="signupTab" onclick="switchAuth('signup')">রেজিস্ট্রেশন</div>
+            </div>
+
+            <div id="loginForm" class="auth-form active">
+                <div class="input-group"><input type="email" id="l_email" placeholder="আপনার ইমেইল"></div>
+                <div class="input-group"><input type="password" id="l_pass" placeholder="পাসওয়ার্ড"></div>
+                <button class="submit-work-btn" onclick="handleLogin()" style="background:var(--primary-yellow); color:#000;">লগইন করুন</button>
+            </div>
+
+            <div id="signupForm" class="auth-form">
+                <div class="input-group"><input type="text" id="s_name" placeholder="আপনার নাম"></div>
+                <div class="input-group"><input type="email" id="s_email" placeholder="ইমেইল এড্রেস"></div>
+                <div class="input-group"><input type="number" id="s_phone" placeholder="ফোন নাম্বার (১১ সংখ্যা)"></div>
+                <div class="input-group"><input type="password" id="s_pass" placeholder="পাসওয়ার্ড (৬ সংখ্যা)"></div>
+                <div class="input-group"><input type="text" id="s_refer" placeholder="রেফার কোড দিন"></div>
+                <button class="submit-work-btn" onclick="handleSignup()" style="background:var(--primary-yellow); color:#000;">একাউন্ট খুলুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appMain" style="display: none;">
+
+        <!-- Ramadan Offer Panel -->
+        <div id="ramadanOfferPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('ramadanOfferPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            <div class="panel-card" style="border-bottom: 3px solid #00FF00; background: linear-gradient(to bottom, #1a1a1a, #0a2a0a);">
+                <h2 style="color: #00FF00; margin-bottom: 5px;"><i class="fa-solid fa-moon"></i> রমজান অফার</h2>
+                <p style="text-align: center; font-size: 13px; color: #ccc;">রমজান মোবারক!ভেরিফাইড রেফার করুন এবং বিশেষ লেভেল পুরস্কার জিতে নিন!সময় ২৮ রমজান ১২:০০</p>
+            </div>
+            
+            <div id="ramadanListContainer" style="padding-bottom: 30px;">
+                <!-- JS দিয়ে কার্ডগুলো এখানে আসবে -->
+            </div>
+        </div>
+
+        <!-- Islamic Panel -->
+        <div id="islamicPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('islamicPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            <div class="panel-card">
+                <h2>ইসলামিক কর্ণার</h2>
+                <p style="text-align: center; color: #ccc; font-size: 13px;">পবিত্র কুরআন ও হাদিসের আলোকে জীবন গড়ি।</p>
+            </div>
+            <div class="islamic-card">
+                <h3 style="color: var(--primary-yellow);">কালিমা তাইয়্যেবা</h3>
+                <div class="arabic-text">لَا إِلٰهَ إِلَّا اللهُ مُহَمَّدٌ رَسُولُ اللهِ</div>
+                <p style="color: #ccc; font-size: 14px;">আল্লাহ ছাড়া কোনো উপাস্য নেই, মুহাম্মাদ (সা.) আল্লাহর রাসূল।</p>
+            </div>
+            <div class="islamic-card">
+                <h3 style="color: var(--primary-yellow);">আয়াতুল কুরসি</h3>
+                <div class="arabic-text">اللَّهُ লَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...</div>
+                <p style="color: #ccc; font-size: 14px;">কুরআনের সবচেয়ে মহিমান্বিত আয়াত।</p>
+            </div>
+        </div>
+
+        <!-- Income Summary Panel -->
+        <div id="incomeSummaryPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('incomeSummaryPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            <div class="panel-card">
+                <h2>ইনকাম সামারি</h2>
+                <p style="text-align: center; color: #ccc; font-size: 13px;">আপনার প্রতিদিনের আয়ের বিস্তারিত রিপোর্ট।</p>
+            </div>
+
+            <div class="sum-card-grid">
+                <div class="sum-card">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span>আজকের ইনকাম</span>
+                    <strong id="inc_today">৳ 0.00</strong>
+                </div>
+                <div class="sum-card">
+                    <i class="fa-solid fa-calendar-week"></i>
+                    <span>৭ দিনের ইনকাম</span>
+                    <strong id="inc_week">৳ 0.00</strong>
+                </div>
+            </div>
+            <div class="sum-card" style="width: 100%; box-sizing: border-box; margin-bottom: 20px;">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>এই মাসের ইনকাম</span>
+                <strong id="inc_month">৳ 0.00</strong>
+            </div>
+
+            <h3 style="color: var(--primary-yellow); font-size: 16px; margin: 25px 0 15px; text-align: center;">সাম্প্রতিক আয়ের তালিকা</h3>
+            <div id="incomeLogContainer" style="padding-bottom: 40px;">
+                <!-- আয়ের বিস্তারিত তালিকা এখানে রেন্ডার হবে -->
+            </div>
+        </div>
+
+        <div id="activationPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('activationPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            <div class="panel-card">
+                <h2>আইডি এক্টিভ করুন</h2>
+                
+                <div style="background: #333; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center; border: 1px dashed var(--primary-yellow);">
+                    <span style="font-size: 14px; color: #ccc; display: block; margin-bottom: 5px;">আইডি এক্টিভেশন ফি:</span>
+                    <div style="font-size: 26px; font-weight: 800; color: var(--primary-yellow);">৳ <span id="display_activation_fee">0</span></div>
+                </div>
+
+                <p style="font-size: 13px; color: #ccc; text-align: center;">আপনার আইডিটি এক্টিভ করতে উপরের নির্ধারিত ফি নিচের যেকোনো নাম্বারে পেমেন্ট করে ফর্মটি পূরণ করুন।</p>
+                
+                <!-- Added ID Activation Tutorial Button -->
+                <a href="#" id="act_tutorial_btn" target="_blank" class="job-btn video-btn" style="margin-top: 10px; margin-bottom: 20px; text-decoration: none;">
+                    <i class="fa-solid fa-circle-play"></i> আইডি এক্টিভ টিউটোরিয়াল
+                </a>
+
+                <div class="method-item">
+                    <div class="method-name"><img src="https://i.ibb.co/R76mK4G/bkash.png"> বিকাশ: <span id="act_bkash">017XXXXXXXX</span></div>
+                    <div class="copy-small" onclick="copyText('act_bkash')">COPY</div>
+                </div>
+                <div class="method-item">
+                    <div class="method-name"><img src="https://i.ibb.co/5hMh4fF/nagad.png"> নগদ: <span id="act_nagad">018XXXXXXXX</span></div>
+                    <div class="copy-small" onclick="copyText('act_nagad')">COPY</div>
+                </div>
+                <div class="method-item">
+                    <div class="method-name"><img src="https://i.ibb.co/6P6X7mY/rocket.png"> রকেট: <span id="act_rocket">019XXXXXXXX</span></div>
+                    <div class="copy-small" onclick="copyText('act_rocket')">COPY</div>
+                </div>
+
+                <div class="input-group">
+                    <label>পেমেন্ট মেথড সিলেক্ট করুন:</label>
+                    <select id="a_method">
+                        <option value="Bkash">Bkash</option>
+                        <option value="Nagad">Nagad</option>
+                        <option value="Rocket">Rocket</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>কত টাকা পেমেন্ট করেছেন লিখুন:</label>
+                    <input type="number" id="a_amount" placeholder="সঠিক টাকার পরিমাণ দিন">
+                </div>
+                <div class="input-group">
+                    <label>ট্রানজেকশন আইডি দিন (TrxID):</label>
+                    <input type="text" id="a_trxid" placeholder="Ex: 8N7X6W5Q">
+                </div>
+                <div class="input-group">
+                    <label>পেমেন্ট স্ক্রিনশট লিংক দিন:</label>
+                    <input type="text" id="a_ss_link" placeholder="https://imgbb.com/...">
+                </div>
+                <button class="submit-work-btn" onclick="submitActivation()">আইডি এক্টিভেশন রিকোয়েস্ট পাঠান</button>
+            </div>
+        </div>
+
+        <div id="referPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('referPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            
+            <div class="refer-balance-card">
+                <div style="font-size: 14px; color: #aaa; margin-bottom: 5px;">রেফার ওয়ালেট (কমিশন)</div>
+                <div id="refer_panel_balance" style="font-size: 32px; font-weight: 800; color: var(--primary-yellow);">৳ 0.00</div>
+            </div>
+
+            <div class="refer-grid">
+                <div class="refer-option-card" onclick="toggleTeamList()">
+                    <i class="fa-solid fa-users-viewfinder"></i>
+                    <div class="opt-label">মাই টিম</div>
+                    <div id="display_team_count" class="opt-value">০ জন (একটিভ)</div>
+                </div>
+                <div class="refer-option-card" onclick="openReferWithdraw()">
+                    <i class="fa-solid fa-money-bill-transfer" style="color: #4CAF50;"></i>
+                    <div class="opt-label">উত্তোলন</div>
+                    <div class="opt-value" style="color: #4CAF50;">টাকা তুলুন</div>
+                </div>
+            </div>
+
+            <div class="invite-section">
+                <div class="invite-title"><i class="fa-solid fa-share-nodes" style="color:var(--primary-yellow)"></i> আপনার ইনভাইট লিঙ্ক</div>
+                <div class="refer-box">
+                    <span id="referLinkPanel">https://ruzhanbd.pages.dev/?by=...</span>
+                    <button class="copy-btn" onclick="copyLink()">Copy</button>
+                </div>
+                <div class="social-icons">
+                    <i class="fa-brands fa-facebook" style="background: #1877F2; color: #fff;"></i>
+                    <i class="fa-brands fa-whatsapp" style="background: #25D366; color: #fff;"></i>
+                    <i class="fa-brands fa-telegram" style="background: #0088cc; color: #fff;"></i>
+                    <i class="fa-brands fa-facebook-messenger" style="background: #006AFF; color: #fff;"></i>
+                </div>
+            </div>
+
+            <div id="teamListArea" style="display: none; padding: 0 20px; margin-top: 20px;">
+                <h3 style="color: var(--primary-yellow); font-size: 16px; margin-bottom: 15px; text-align: center;">টিম মেম্বার (অ্যাক্টিভ লিস্ট)</h3>
+                <div id="teamMembersContainer"></div>
+            </div>
+        </div>
+
+        <div id="referWithdrawPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('referWithdrawPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            <div class="panel-card" style="text-align: center; border-bottom: 3px solid #4CAF50;">
+                <div style="font-size: 14px; color: #bbb;">আপনার বর্তমান রেফার ব্যালেন্স</div>
+                <div id="rw_display_balance" style="font-size: 24px; font-weight: bold; color: #4CAF50; margin-top: 5px;">৳ 0.00</div>
+            </div>
+            <div class="panel-card">
+                <h2 style="color: #4CAF50;">রেফার ব্যালেন্স উত্তোলন</h2>
+                <div class="input-group">
+                    <label>পেমেন্ট মেথড সিলেক্ট করুন:</label>
+                    <select id="rw_method">
+                        <option value="Bkash">Bkash (বিকাশ)</option>
+                        <option value="Nagad">Nagad (নগদ)</option>
+                        <option value="Rocket">Rocket (রকেট)</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>আপনার নম্বরটি লিখুন:</label><input type="number" id="rw_number" placeholder="017XXXXXXXX"></div>
+                <div class="input-group"><label>উত্তোলনের পরিমাণ লিখুন (৳):</label><input type="number" id="rw_amount" placeholder="সর্বনিম্ন ৫০ টাকা"></div>
+                <button class="submit-work-btn" onclick="initiateReferWithdraw()" style="background: #4CAF50;">উত্তোলন করুন</button>
+            </div>
+        </div>
+
+        <div id="prayerPopup" class="full-panel" style="background: rgba(0,0,0,0.8); z-index: 5000; display: none; align-items: center; justify-content: center;">
+            <div class="panel-card" style="width: 90%; max-width: 350px;">
+                <h2 style="font-size: 18px; margin-bottom: 5px;">সালাত যাচাইকরণ</h2>
+                <p style="text-align: center; color: #ccc; font-size: 13px; margin-bottom: 20px;">আপনি কি গতকাল ৫ ওয়াক্ত নামাজ পড়েছেন?</p>
+                
+                <div id="prayerOptions">
+                    <div class="prayer-row" data-prayer="Fajr"><span class="prayer-name">ফজর</span><div class="prayer-btns"><button class="prayer-btn yes" onclick="selectPrayer(this, 'yes')"><i class="fa-solid fa-check"></i></button><button class="prayer-btn no" onclick="selectPrayer(this, 'no')"><i class="fa-solid fa-xmark"></i></button></div></div>
+                    <div class="prayer-row" data-prayer="Dhuhr"><span class="prayer-name">যোহর</span><div class="prayer-btns"><button class="prayer-btn yes" onclick="selectPrayer(this, 'yes')"><i class="fa-solid fa-check"></i></button><button class="prayer-btn no" onclick="selectPrayer(this, 'no')"><i class="fa-solid fa-xmark"></i></button></div></div>
+                    <div class="prayer-row" data-prayer="Asr"><span class="prayer-name">আসর</span><div class="prayer-btns"><button class="prayer-btn yes" onclick="selectPrayer(this, 'yes')"><i class="fa-solid fa-check"></i></button><button class="prayer-btn no" onclick="selectPrayer(this, 'no')"><i class="fa-solid fa-xmark"></i></button></div></div>
+                    <div class="prayer-row" data-prayer="Maghrib"><span class="prayer-name">মাগরিব</span><div class="prayer-btns"><button class="prayer-btn yes" onclick="selectPrayer(this, 'yes')"><i class="fa-solid fa-check"></i></button><button class="prayer-btn no" onclick="selectPrayer(this, 'no')"><i class="fa-solid fa-xmark"></i></button></div></div>
+                    <div class="prayer-row" data-prayer="Isha"><span class="prayer-name">এশা</span><div class="prayer-btns"><button class="prayer-btn yes" onclick="selectPrayer(this, 'yes')"><i class="fa-solid fa-check"></i></button><button class="prayer-btn no" onclick="selectPrayer(this, 'no')"><i class="fa-solid fa-xmark"></i></button></div></div>
+                </div>
+
+                <button class="submit-work-btn" onclick="confirmPrayerSubmit()" style="margin-top: 15px;">নিশ্চিত করুন</button>
+                <div style="text-align: center; margin-top: 10px; cursor: pointer; color: #888; font-size: 13px;" onclick="document.getElementById('prayerPopup').style.display='none'">বন্ধ করুন</div>
+            </div>
+        </div>
+
+        <div id="newJobSelectPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('newJobSelectPanel')"><i class="fa-solid fa-arrow-left"></i> <span>ফিরে যান</span></div>
+            <div class="panel-card">
+                <h2 data-key="new_job">নিউ জব</h2>
+                <div class="job-grid" style="grid-template-columns: repeat(2, 1fr); padding: 0;">
+                    <div class="job-item" onclick="openJob('coinsell')">
+                        <div class="job-icon-box" style="width: 80px; height: 80px;"><i class="fa-solid fa-coins" style="color: var(--primary-yellow); font-size: 30px;"></i></div>
+                        <span style="font-size: 14px;" data-key="coinsell">কয়েন সেল</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="jobPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('jobPanel')"><i class="fa-solid fa-arrow-left"></i> <span data-key="back">ফিরে যান</span></div>
+            
+            <div class="panel-card" id="standard_job_box">
+                <h2 id="p_title">Job Title</h2>
+                <a href="#" id="p_work_link" target="_blank" class="job-btn work-btn" data-key="work_link">কাজের লিঙ্ক</a>
+                <a href="#" id="p_video_link" target="_blank" class="job-btn video-btn" data-key="video_link">ভিডিও টিউটোরিয়াল</a>
+                <div class="input-group">
+                    <label data-key="coin_label">কত কয়েন কাজ করেছেন লিখুন:</label>
+                    <input type="number" id="work_coins" placeholder="0.00" oninput="calculateTaka()">
+                    <div id="coinToTaka" style="color: var(--primary-yellow); font-size: 14px; margin-top: 8px; font-weight: bold;">মোট টাকা: ৳ 0.00</div>
+                </div>
+                <div class="input-group">
+                    <label data-key="ss_label">কাজের জমার স্ক্রিনশট লিঙ্ক দিন:</label>
+                    <input type="text" id="screenshot_link" placeholder="https://...">
+                    <a href="https://imgbb.com" target="_blank" style="color:var(--primary-yellow); font-size:12px; text-decoration:none; margin-top:8px; display:inline-block; font-weight:500;">
+                        <i class="fa-solid fa-link"></i> এখান থেকে স্ক্রিনশট লিঙ্ক তৈরি করুন
+                    </a>
+                </div>
+                <button class="submit-work-btn" onclick="submitWork()" data-key="submit_btn">কাজ জমা দিন</button>
+            </div>
+
+            <div class="panel-card" id="coin_apply_box" style="display: none; border-top: 3px solid var(--primary-yellow);">
+                <h2 style="color: var(--primary-yellow);">কয়েন সেল আবেদন</h2>
+                <div class="input-group">
+                    <label>আবেদনের জন্য কয়েন পরিমাণ লিখুন:</label>
+                    <input type="number" id="apply_coins_val" placeholder="সর্বনিম্ন 5000000">
+                    <p style="font-size: 11px; color: #ff4444; margin-top: 5px; font-weight: bold;">* সর্বনিম্ন 50লাখ কয়েন আবেদন সাবমিট হবে।</p>
+                </div>
+                <button class="submit-work-btn" onclick="submitCoinSellApplication()" style="background: var(--primary-yellow); color: #000;">আবেদন জমা দিন</button>
+            </div>
+
+            <div class="panel-card" style="background: transparent; border: none; padding: 0;">
+                <h3 style="color:var(--primary-yellow); font-size:18px; margin-bottom:15px; text-align:center;">জব সাবমিট হিস্টোরি</h3>
+                <div id="jobHistoryList" class="history-container"></div>
+            </div>
+        </div>
+
+        <div id="tutorialPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('tutorialPanel')"><i class="fa-solid fa-arrow-left"></i> <span data-key="back">ফিরে যান</span></div>
+            <div class="panel-card">
+                <h2 data-key="tutorial">টিউটোরিয়াল ভিডিও</h2>
+                <div class="tutorial-list">
+                    <div class="tutorial-item" id="tutTypingLink"><i class="fa-brands fa-youtube"></i><span data-key="v1">টাইপিং জব ভিডিও</span></div>
+                    <div class="tutorial-item" id="tutTiktokLink"><i class="fa-brands fa-youtube"></i><span data-key="v5">টিকটক জব ভিডিও</span></div>
+                    <div class="tutorial-item" id="tutLikeLink"><i class="fa-brands fa-youtube"></i><span data-key="v6">লাইক ফলো জব ভিডিও</span></div>
+                    <div class="tutorial-item" id="tutWithdrawLink"><i class="fa-brands fa-youtube"></i><span data-key="v2">টাকা উত্তোলন নিয়ম</span></div>
+                    <div class="tutorial-item" id="tutReferLink"><i class="fa-brands fa-youtube"></i><span data-key="v3">রেফার করার নিয়ম</span></div>
+                    <div class="tutorial-item" id="tutActiveLink"><i class="fa-solid fa-video"></i><span data-key="v4">অ্যাকাউন্ট এক্টিভেশন করার নিয়ম</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="withdrawPanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('withdrawPanel')"><i class="fa-solid fa-arrow-left"></i> <span data-key="back">ফিরে যান</span></div>
+            <div class="panel-card" style="text-align: center; border-bottom: 3px solid var(--primary-yellow);">
+                <div style="font-size: 14px; color: #bbb;">আপনার বর্তমান ব্যালেন্স</div>
+                <div id="w_display_balance" style="font-size: 24px; font-weight: bold; color: var(--primary-yellow); margin-top: 5px;">৳ 0.00</div>
+            </div>
+            <div class="panel-card">
+                <h2 data-key="withdraw">উত্তোলন</h2>
+                <div class="input-group">
+                    <label data-key="select_method">পেমেন্ট মেথড সিলেক্ট করুন:</label>
+                    <select id="w_method">
+                        <option value="Bkash">Bkash (বিকাশ)</option>
+                        <option value="Nagad">Nagad (নগদ)</option>
+                        <option value="Rocket">Rocket (রকেট)</option>
+                    </select>
+                </div>
+                <div class="input-group"><label data-key="num_label">আপনার নম্বরটি লিখুন:</label><input type="number" id="w_number" placeholder="017XXXXXXXX"></div>
+                <div class="input-group"><label data-key="amount_label">উত্তোলনের পরিমাণ লিখুন (৳):</label><input type="number" id="w_amount" placeholder="সর্বনিম্ন ৫০ টাকা"></div>
+                <button class="submit-work-btn" onclick="initiateWithdraw()" data-key="withdraw_btn">উত্তোলন করুন</button>
+            </div>
+            <div class="panel-card" style="background: transparent; border:none; padding: 0;">
+                <h3 style="color:var(--primary-yellow); font-size:18px; margin-bottom:15px; text-align:center;">উত্তোলন হিস্টোরি</h3>
+                <div id="withdrawList" class="history-container"></div>
+            </div>
+        </div>
+
+        <div id="profilePanel" class="full-panel">
+            <div class="back-btn" onclick="closePanel('profilePanel')"><i class="fa-solid fa-arrow-left"></i> <span data-key="back">ফিরে যান</span></div>
+            <div class="panel-card">
+                <h2 style="color:var(--primary-yellow);"><i class="fa-solid fa-user-gear"></i> প্রোফাইল সেটিংস</h2>
+                <div class="input-group"><label>আপনার নাম:</label><input type="text" id="u_name"></div>
+                <div class="input-group"><label>ফোন নাম্বার:</label><input type="number" id="u_phone"></div>
+                <div class="input-group"><label>ইমেইল এড্রেস:</label><input type="email" id="u_email" readonly></div>
+                <div class="input-group"><label>পাসওয়ার্ড:</label><input type="password" id="u_pass"></div>
+                <div class="input-group"><label>প্রোফাইল পিকচার লিংক:</label><input type="text" id="u_pic"></div>
+                <button class="submit-work-btn" onclick="saveProfile()" style="background:var(--primary-yellow); color:#000;"><i class="fa-solid fa-floppy-disk"></i> পরিবর্তন সেভ করুন</button>
+            </div>
+        </div>
+
+        <div class="top-nav">
+            <div class="nav-logo"><img src="https://i.ibb.co/CKSzHY89/18714.jpg" alt="Logo"></div>
+            <i class="fa-solid fa-bars" style="font-size: 24px; color: var(--primary-yellow); cursor: pointer;" onclick="toggleSidebar()"></i>
+        </div>
+
+        <div id="notice-bar" style="background: #3d3416; color: var(--primary-yellow); padding: 10px; font-size: 13px; text-align: center; border-bottom: 1px solid var(--border-color);">
+            লোড হচ্ছে...
+        </div>
+
+        <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+        <div class="sidebar" id="sidebar">
+            <h3 data-key="menu_title" style="color:var(--primary-yellow)">মেনু তালিকা</h3>
+            <div class="sidebar-link" onclick="location.reload()"><i class="fa-solid fa-house"></i> <span data-key="nav_home">ড্যাশবোর্ড</span></div>
+            <div class="sidebar-link" onclick="openPanel('incomeSummaryPanel')"><i class="fa-solid fa-chart-line"></i> <span>ইনকাম সামারি</span></div>
+            <div class="sidebar-link" onclick="openPanel('profilePanel')"><i class="fa-solid fa-user"></i> <span>প্রোফাইল</span></div>
+            <div class="sidebar-link" onclick="openPanel('newJobSelectPanel')"><i class="fa-solid fa-briefcase"></i> <span data-key="new_job">নিউ জব</span></div>
+            <div class="sidebar-link" onclick="openPanel('tutorialPanel')"><i class="fa-solid fa-play"></i> <span data-key="tutorial">টিউটোরিয়াল</span></div>
+            <div class="sidebar-link" onclick="handleLogout()" style="color: #ff4444;"><i class="fa-solid fa-right-from-bracket"></i> <span>লগআউট</span></div>
+            <select class="lang-select" onchange="changeLanguage(this.value)"><option value="bn">বাংলা (Bengali)</option><option value="en">English (ইংরেজি)</option></select>
+        </div>
+
+        <div class="profile-area">
+            <div class="user-avatar"><img id="display_pic" src="https://i.ibb.co/CKSzHY89/18714.jpg" alt="User"></div>
+            <div class="user-info">
+                <div class="user-name"><span id="display_name">লোড হচ্ছে...</span> <i class="fa-solid fa-circle-check" style="color:#1d9bf0"></i></div>
+                <div class="user-id-box">ID: <span id="display_id">0000</span></div>
+                <div id="display_status_area"></div>
+            </div>
+            <div id="activate_btn_area"></div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">৳</div>
+                <div class="stat-text">
+                    <div class="stat-label" data-key="balance">ব্যালেন্স</div>
+                    <div id="display_balance" class="stat-value">৳ 0.00</div>
+                </div>
+            </div>
+            <div class="stat-card" onclick="openPanel('withdrawPanel')">
+                <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                <div class="stat-text">
+                    <div class="stat-label" data-key="withdraw">উত্তোলন</div>
+                    <div class="stat-value" data-key="withdraw_btn" style="color: var(--primary-yellow); font-size: 13px;">উত্তোলন করুন</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="job-grid">
+            <div class="job-item" onclick="openJob('typing')"><div class="job-icon-box"><i class="fa-solid fa-keyboard" style="color: #4CAF50;"></i></div><span data-key="typing">টাইপিং জব</span></div>
+            <div class="job-item" onclick="openJob('tiktok')"><div class="job-icon-box"><i class="fa-brands fa-tiktok" style="color: #fff;"></i></div><span data-key="tiktok">টিকটক জব</span></div>
+            <div class="job-item" onclick="openJob('like')"><div class="job-icon-box"><i class="fa-solid fa-thumbs-up" style="color: #2196F3;"></i></div><span data-key="like">লাইক ফলো</span></div>
+            <div class="job-item" onclick="openJob('video')"><div class="job-icon-box"><i class="fa-solid fa-video" style="color: #f44336;"></i></div><span data-key="video_job">ভিডিও জব</span></div>
+            
+            <!-- Ramadan Offer Tab -->
+            <div class="job-item" onclick="openPanel('ramadanOfferPanel')">
+                <div class="job-icon-box"><i class="fa-solid fa-moon" style="color: #00FF00;"></i></div>
+                <span>রমজান অফার</span>
+            </div>
+
+            <!-- Islamic Tab -->
+            <div class="job-item" onclick="openPanel('islamicPanel')">
+                <div class="job-icon-box"><i class="fa-solid fa-kaaba" style="color: #4CAF50;"></i></div>
+                <span>ইসলামিক</span>
+            </div>
+
+            <div class="job-item" onclick="openPanel('tutorialPanel')"><div class="job-icon-box"><i class="fa-solid fa-play" style="color: #ff9800;"></i></div><span data-key="tutorial">টিউটোরিয়াল</span></div>
+            <div class="job-item" onclick="window.open('https://imgbb.com', '_blank')"><div class="job-icon-box"><i class="fa-solid fa-image" style="color: #673AB7;"></i></div><span data-key="leader">ছবি লিঙ্ক তৈরি</span></div>
+        </div>
+
+        <div class="invite-section">
+            <div class="invite-title"><i class="fa-solid fa-user-plus" style="color:var(--primary-yellow)"></i> <span data-key="invite_title">বন্ধুদের ইনভাইট করুন</span></div>
+            <div class="refer-box"><span id="referLink">https://ruzhanbd.pages.dev/?by=...</span><button class="copy-btn" onclick="copyLink()">Copy</button></div>
+            <div class="social-icons">
+                <i class="fa-brands fa-facebook" style="background: #1877F2; color: #fff;"></i>
+                <i class="fa-brands fa-whatsapp" style="background: #25D366; color: #fff;"></i>
+                <i class="fa-brands fa-telegram" style="background: #0088cc; color: #fff;"></i>
+                <i class="fa-brands fa-facebook-messenger" style="background: #006AFF; color: #fff;"></i>
+            </div>
+        </div>
+
+        <div class="quick-links-grid">
+            <div class="link-card" id="support_btn"><i class="fa-solid fa-headset"></i><span data-key="support">সাপোর্ট</span></div>
+            <div class="link-card" id="group_btn"><i class="fa-solid fa-users-viewfinder"></i><span>গ্রুপ</span></div>
+            <div class="link-card" id="channel_btn"><i class="fa-solid fa-bullhorn"></i><span>চ্যানেল</span></div>
+        </div>
+
+        <div class="section-heading" data-key="admin_title">OUR MAIN ADMIN</div>
+        <div class="admin-card">
+            <div class="main-admin-badge">MAIN ADMIN</div>
+            <div class="admin-photo"><img id="admin_photo" src="https://i.ibb.co/CKSzHY89/18714.jpg" alt="Admin"></div>
+            <div class="admin-info">
+                <div class="admin-name" id="admin_name">Admin <i class="fa-solid fa-circle-check" style="color:#1d9bf0"></i></div>
+                <div style="color:#4CAF50; font-size:13px;" id="admin_wa_text"><i class="fa-brands fa-whatsapp"></i> ...</div>
+                <button class="message-btn" id="admin_tg_btn"><i class="fa-brands fa-telegram"></i> Message</button>
+            </div>
+        </div>
+
+        <div class="navbar">
+            <div class="active" onclick="location.reload()"><i class="fa-solid fa-house"></i><br><span data-key="nav_home">হোম</span></div>
+            <div onclick="openPanel('referPanel')"><i class="fa-solid fa-users"></i><br><span data-key="nav_refer">রেফার</span></div>
+            <div onclick="openPanel('profilePanel')"><i class="fa-solid fa-user"></i><br><span data-key="nav_profile">প্রোফাইল</span></div>
+            <div onclick="openPanel('islamicPanel')"><i class="fa-solid fa-kaaba"></i><br><span data-key="islamic">ইসলামিক</span></div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyDZgBELp09FD6jFfS1W0uy2w539YzUmr7Y",
+          authDomain: "daily-routine-6380b.firebaseapp.com",
+          databaseURL: "https://daily-routine-6380b-default-rtdb.firebaseio.com",
+          projectId: "daily-routine-6380b",
+          storageBucket: "daily-routine-6380b.firebasestorage.app",
+          messagingSenderId: "901069174414",
+          appId: "1:901069174414:web:fa41fb855c15d8b7067bdf"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        let CURRENT_USER_UID = null; 
+        let dbData = null;
+        let pendingType = ''; 
+        let activeJobTitle = '';
+        let activeJobKey = ''; 
+
+        // Ramadan Offer Configuration
+        const RAMADAN_LEVELS = [
+            { id: 'r_bronze', name: 'ব্রোঞ্জ লেভেল', target: 10, cash: 20, gift: 'নগদ পুরস্কার', icon: 'fa-coins' },
+            { id: 'r_gold', name: 'গোল্ড লেভেল', target: 20, cash: 30, gift: 'নগদ পুরস্কার', icon: 'fa-money-bill-wave' },
+            { id: 'r_platinum', name: 'প্লাটিনাম লেভেল', target: 30, cash: 45, gift: 'নগদ পুরস্কার', icon: 'fa-sack-dollar' },
+            { id: 'r_diamond', name: 'ডায়মন্ড লেভেল', target: 40, cash: 60, gift: 'নগদ পুরস্কার', icon: 'fa-gem' },
+            { id: 'r_super', name: 'সুপার লেভেল', target: 50, cash: 150, gift: 'নগদ পুরস্কার', icon: 'fa-star' },
+            { id: 'r_grand', name: 'গ্রান্ড লেভেল', target: 100, cash: 100, gift: 'RUZHAN Brand T-shirt', icon: 'fa-shirt' },
+            { id: 'r_grandmaster', name: 'গ্রান্ড মাস্টার লেভেল', target: 200, cash: 150, gift: 'T-shirt + Panjabi / থ্রি পিস', icon: 'fa-user-tie' }
+        ];
+
+        const langData = {
+            bn: { nav_home: "হোম", typing: "টাইপিং জব", tiktok: "টিকটক জব", like: "লাইক ফলো", video_job: "ভিডিও জব", new_job: "নিউ জব", tutorial: "টিউটোরিয়াল", support: "সাপোর্ট", leader: "ছবি লিঙ্ক তৈরি", freelance: "ফ্রিল্যান্সিং", islamic: "ইসলামিক", balance: "ব্যালেন্স", withdraw: "উত্তোলন", withdraw_btn: "উত্তোলন করুন", nav_refer: "রেফার", nav_profile: "প্রোফাইল", invite_title: "বন্ধুদের ইনভাইট করুন", admin_title: "আমাদের প্রধান অ্যাডমিন", menu_title: "মেনু তালিকা", back: "ফিরে যান", work_link: "কাজের লিঙ্ক", coin_label: "কত কয়েন কাজ করেছেন লিখুন:", video_link: "ভিডিও টিউটোরিয়াল", ss_label: "কাজের জমার স্ক্রিনশট লিঙ্ক দিন:", submit_btn: "কাজ জমা দিন", v1: "টাইপিং জব ভিডিও", v2: "টাকা উত্তোলন নিয়ম", v3: "রেফার করার নিয়ম", v4: "অ্যাকাউন্ট এক্টিভেশন করার নিয়ম", v5: "টিকটক জব ভিডিও", v6: "লাইক ফলো জব ভিডিও", select_method: "পেমেন্ট মেথড সিলেক্ট করুন:", num_label: "আপনার নম্বরটি লিখুন:", amount_label: "উত্তোলনের পরিমাণ লিখুন (৳):", coinsell: "কয়েন সেল" },
+            en: { nav_home: "Home", typing: "Typing Job", tiktok: "TikTok Job", like: "Like Follow", video_job: "Video Job", new_job: "New Job", tutorial: "Tutorial", support: "Support", leader: "Create Link", freelance: "Freelancing", islamic: "Islamic", balance: "Balance", withdraw: "Withdraw", withdraw_btn: "Withdraw Now", nav_refer: "Refer", nav_profile: "Profile", invite_title: "Invite Friends", admin_title: "OUR MAIN ADMIN", menu_title: "Menu List", back: "Go Back", work_link: "Work Link", coin_label: "Enter coins amount:", video_link: "Video Tutorial", ss_label: "Screenshot Link:", submit_btn: "Submit Work", v1: "Typing Job Video", v2: "Withdraw Rules", v3: "Refer Rules", v4: "Account Activation Rules", v5: "TikTok Job Video", v6: "Like Follow Job Video", select_method: "Select Payment Method:", num_label: "Enter your number:", amount_label: "Enter Withdrawal Amount (৳):", coinsell: "Coin Sell" }
+        };
+
+        function switchAuth(type) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            if(type === 'login') {
+                document.getElementById('loginTab').classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.getElementById('signupTab').classList.add('active');
+                document.getElementById('signupForm').classList.add('active');
+            }
+        }
+
+        function handleSignup() {
+            const name = document.getElementById('s_name').value;
+            const email = document.getElementById('s_email').value;
+            const phone = document.getElementById('s_phone').value;
+            const pass = document.getElementById('s_pass').value;
+            const refer = document.getElementById('s_refer').value;
+
+            if(!name || !email || !phone || !pass || !refer) return alert("সব তথ্য এবং রেফার কোড দিন।");
+            if(phone.length !== 11) return alert("ফোন নাম্বার অবশ্যই ১১ সংখ্যার হতে হবে।");
+            if(pass.length !== 6) return alert("পাসওয়ার্ড অবশ্যই ৬ সংখ্যার হতে হবে।");
+
+            database.ref('nexora_db/users').orderByChild('id').equalTo(refer).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    auth.createUserWithEmailAndPassword(email, pass).then((userCredential) => {
+                        const uid = userCredential.user.uid;
+                        database.ref('nexora_db/users/' + uid).set({
+                            uid: uid, id: Math.floor(100000 + Math.random() * 900000).toString(),
+                            name, email, phone, pass, balance: 0, referBalance: 0, pic: "", isActive: false,
+                            referredBy: refer 
+                        });
+                        alert("রেজিস্ট্রেশন সফল!");
+                    }).catch(e => alert(e.message));
+                } else {
+                    alert("ভুল রেফার কোড! একাউন্ট খোলার জন্য একজন সক্রিয় ইউজারের রেফার কোড প্রয়োজন।");
+                }
+            });
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('l_email').value;
+            const pass = document.getElementById('l_pass').value;
+            if(!email || !pass) return alert("ইমেইল ও পাসওয়ার্ড দিন।");
+            auth.signInWithEmailAndPassword(email, pass).then(() => alert("লগইন সফল!")).catch(e => alert(e.message));
+        }
+
+        function handleLogout() { auth.signOut().then(() => location.reload()); }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                CURRENT_USER_UID = user.uid;
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('appMain').style.display = 'block';
+                syncData();
+            } else {
+                document.getElementById('authSection').style.display = 'flex';
+                document.getElementById('appMain').style.display = 'none';
+            }
+        });
+
+        function syncData() {
+            database.ref('nexora_db').on('value', (snapshot) => {
+                dbData = snapshot.val();
+                if(dbData) updateUI();
+            });
+        }
+
+        function updateUI() {
+            const user = dbData.users[CURRENT_USER_UID];
+            document.getElementById('notice-bar').innerText = dbData.notice || "স্বাগতম!";
+            
+            if(user) {
+                document.getElementById('display_name').innerText = user.name;
+                document.getElementById('display_id').innerText = user.id;
+                document.getElementById('display_balance').innerText = "৳ " + parseFloat(user.balance || 0).toFixed(2);
+                document.getElementById('w_display_balance').innerText = "৳ " + parseFloat(user.balance || 0).toFixed(2);
+                
+                document.getElementById('refer_panel_balance').innerText = "৳ " + parseFloat(user.referBalance || 0).toFixed(2);
+                document.getElementById('rw_display_balance').innerText = "৳ " + parseFloat(user.referBalance || 0).toFixed(2);
+                
+                document.getElementById('display_pic').src = user.pic || "https://i.ibb.co/CKSzHY89/18714.jpg";
+                
+                // Updated Refer Link logic with ruzhanbd.pages.dev
+                document.getElementById('referLink').innerText = "https://ruzhanbd.pages.dev/?by=" + user.id;
+                document.getElementById('referLinkPanel').innerText = "https://ruzhanbd.pages.dev/?by=" + user.id;
+
+                const statusArea = document.getElementById('display_status_area');
+                const activateBtnArea = document.getElementById('activate_btn_area');
+                if(user.isActive) {
+                    statusArea.innerHTML = `<span class="id-status-badge status-active">ACTIVE ID</span>`;
+                    activateBtnArea.innerHTML = '';
+                } else {
+                    statusArea.innerHTML = `<span class="id-status-badge status-inactive">INACTIVE ID</span>`;
+                    activateBtnArea.innerHTML = user.activationPending ? 
+                        `<button class="activate-btn-ui" style="background:#333; cursor:default;">যাচাই হচ্ছে</button>` : 
+                        `<button class="activate-btn-ui" onclick="openPanel('activationPanel')">Activate ID</button>`;
+                }
+                
+                const activeTeam = Object.values(dbData.users).filter(u => u.referredBy === user.id && u.isActive === true);
+                const activeCount = activeTeam.length;
+                document.getElementById('display_team_count').innerText = activeCount + " জন (একটিভ)";
+                renderTeamList(activeTeam);
+                renderRamadanOffers(activeCount, user); // রমজান অফার রেন্ডার
+
+                document.getElementById('u_name').value = user.name;
+                document.getElementById('u_phone').value = user.phone;
+                document.getElementById('u_email').value = user.email;
+                document.getElementById('u_pass').value = user.pass || "";
+                document.getElementById('u_pic').value = user.pic || "";
+
+                // Income Summary ক্যালকুলেশন কল করা হলো
+                calculateIncomeSummary(user.id);
+            }
+
+            if(dbData.config) {
+                document.getElementById('admin_name').innerHTML = dbData.config.adminName + ' <i class="fa-solid fa-circle-check" style="color:#1d9bf0"></i>';
+                document.getElementById('admin_wa_text').innerHTML = '<i class="fa-brands fa-whatsapp"></i> ' + dbData.config.wa;
+                document.getElementById('admin_photo').src = dbData.config.adminPhoto || "https://i.ibb.co/CKSzHY89/18714.jpg";
+                document.getElementById('admin_tg_btn').onclick = () => window.open(dbData.config.adminTg, '_blank');
+                document.getElementById('channel_btn').onclick = () => window.open(dbData.config.channel, '_blank');
+                document.getElementById('group_btn').onclick = () => window.open(dbData.config.support, '_blank');
+                document.getElementById('support_btn').onclick = () => window.open("https://wa.me/" + dbData.config.wa, '_blank');
+                document.getElementById('act_bkash').innerText = dbData.config.bkash || "017XXXXXXXX";
+                document.getElementById('act_nagad').innerText = dbData.config.nagad || "018XXXXXXXX";
+                document.getElementById('act_rocket').innerText = dbData.config.rocket || "019XXXXXXXX";
+                document.getElementById('display_activation_fee').innerText = dbData.config.activationFee || "0";
+                
+                // Linking the new ID Activation Tutorial button
+                document.getElementById('act_tutorial_btn').href = dbData.config.tutActive || "#";
+
+                const tuts = ['Typing', 'Tiktok', 'Like', 'Withdraw', 'Refer', 'Active'];
+                tuts.forEach(t => {
+                   const el = document.getElementById('tut' + t + 'Link');
+                   if(el) el.onclick = () => window.open(dbData.config['tut' + t], '_blank');
+                });
+            }
+            renderWithdrawList();
+            if(activeJobTitle) renderJobHistory(activeJobTitle);
+        }
+
+        // --- Income Summary ক্যালকুলেশন সিস্টেম ---
+        function calculateIncomeSummary(userId) {
+            if (!dbData.submissions) return;
+
+            const allApproved = Object.values(dbData.submissions).filter(s => s.userId === userId && s.status === 'Approved');
+            
+            const now = new Date();
+            const todayDateStr = now.toLocaleDateString('en-GB'); // "DD/MM/YYYY" format
+            
+            let todayTotal = 0;
+            let weekTotal = 0;
+            let monthTotal = 0;
+
+            const logsDiv = document.getElementById('incomeLogContainer');
+            const banglaDays = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
+            
+            let logHTML = '';
+
+            // হিস্টোরি রিভার্স করে নতুনগুলো আগে দেখানো হবে
+            [...allApproved].reverse().forEach(item => {
+                // item.date format from database: "DD/MM/YYYY, HH:MM:SS" (toLocaleString('bn-BD') format)
+                const dateParts = item.date.split(',')[0].split('/');
+                const workDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+                const workDateStr = workDate.toLocaleDateString('en-GB');
+
+                const amt = parseFloat(item.amount || 0);
+
+                // দৈনিক হিসাব
+                if (workDateStr === todayDateStr) todayTotal += amt;
+
+                // ৭ দিনের হিসাব
+                const diffTime = Math.abs(now - workDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 7) weekTotal += amt;
+
+                // মাসিক হিসাব (একই মাস এবং বছর)
+                if (workDate.getMonth() === now.getMonth() && workDate.getFullYear() === now.getFullYear()) {
+                    monthTotal += amt;
+                }
+
+                // বিস্তারিত তালিকা তৈরি (Day name সহ)
+                const dayName = banglaDays[workDate.getDay()];
+                logHTML += `
+                    <div class="income-log-item">
+                        <div class="income-log-left">
+                            <span class="income-log-day">${dayName}</span>
+                            <span class="income-log-date">${item.date}</span>
+                        </div>
+                        <div class="income-log-amt">৳ ${amt.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('inc_today').innerText = "৳ " + todayTotal.toFixed(2);
+            document.getElementById('inc_week').innerText = "৳ " + weekTotal.toFixed(2);
+            document.getElementById('inc_month').innerText = "৳ " + monthTotal.toFixed(2);
+            logsDiv.innerHTML = logHTML || '<p style="text-align:center; color:#666;">এখনও কোনো অনুমোদিত আয় নেই।</p>';
+        }
+
+        // --- Ramadan Logic ---
+        function renderRamadanOffers(activeCount, user) {
+            const container = document.getElementById('ramadanListContainer');
+            const claimed = user.claimedRamadanRewards || {};
+
+            container.innerHTML = RAMADAN_LEVELS.map(level => {
+                const progress = Math.min((activeCount / level.target) * 100, 100);
+                const isClaimed = claimed[level.id] === true;
+                const canClaim = activeCount >= level.target && !isClaimed;
+
+                let btnClass = 'claim-btn';
+                let btnAttr = 'disabled';
+                let btnText = 'শর্ত পূরণ হয়নি';
+
+                if(isClaimed) {
+                    btnClass += ' claimed';
+                    btnText = 'সফলভাবে পেয়েছেন';
+                } else if(canClaim) {
+                    btnClass += ' ready';
+                    btnText = 'ক্লেইম করুন';
+                    btnAttr = `onclick="claimRamadanReward('${level.id}', ${level.cash})"`;
+                }
+
+                return `
+                    <div class="target-card" style="border-left-color: #00FF00;">
+                        <div class="target-header">
+                            <span class="target-name" style="color:#00FF00;">${level.name}</span>
+                            <span class="target-reward-tag" style="background:#0a2a0a; color:#00FF00;">৳ ${level.cash}</span>
+                        </div>
+                        <div class="prize-display">
+                            <i class="fa-solid ${level.icon}" style="color:#00FF00;"></i>
+                            <span>পুরস্কার: ${level.gift}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar-fill" style="background: linear-gradient(90deg, #00FF00, #008000); width: ${progress}%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span>প্রগ্রেস: ${activeCount}/${level.target} জন</span>
+                            <span>${Math.floor(progress)}%</span>
+                        </div>
+                        <button class="${btnClass}" ${btnAttr}>${btnText}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function claimRamadanReward(levelId, amount) {
+            const user = dbData.users[CURRENT_USER_UID];
+            database.ref(`nexora_db/users/${CURRENT_USER_UID}`).update({
+                balance: parseFloat(user.balance || 0) + amount,
+                [`claimedRamadanRewards/${levelId}`]: true
+            }).then(() => alert("পুরস্কার সফলভাবে ক্লেইম হয়েছে!"));
+        }
+
+        function toggleTeamList() {
+            const area = document.getElementById('teamListArea');
+            area.style.display = area.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function renderTeamList(members) {
+            const container = document.getElementById('teamMembersContainer');
+            if(members.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; font-size:13px;">এখনও কেউ আপনার টিমে একটিভ নেই।</p>';
+                return;
+            }
+            container.innerHTML = members.map(m => `
+                <div class="team-member-item">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${m.pic || 'https://i.ibb.co/CKSzHY89/18714.jpg'}" style="width:35px; height:35px; border-radius:50%; background:#fff; border:1px solid #333;">
+                        <div>
+                            <div style="font-size:14px; font-weight:bold;">${m.name}</div>
+                            <div style="font-size:10px; color:#888;">ID: ${m.id}</div>
+                        </div>
+                    </div>
+                    <span class="id-status-badge status-active">ACTIVE</span>
+                </div>
+            `).join('');
+        }
+
+        function openReferWithdraw() { openPanel('referWithdrawPanel'); }
+
+        function initiateReferWithdraw() {
+            const user = dbData.users[CURRENT_USER_UID];
+            const amount = parseFloat(document.getElementById('rw_amount').value);
+            if(amount < 50 || isNaN(amount)) return alert("সর্বনিম্ন ৫০ টাকা।");
+            if(amount > parseFloat(user.referBalance || 0)) return alert("রেফার ব্যালেন্সে পর্যাপ্ত টাকা নেই!");
+            pendingType = 'referWithdraw';
+            document.getElementById('prayerPopup').style.display = 'flex';
+        }
+
+        function calculateTaka() {
+            const coins = document.getElementById('work_coins').value || 0;
+            let rate = 0;
+            if(dbData && dbData.jobs && activeJobKey && dbData.jobs[activeJobKey]) {
+                rate = parseFloat(dbData.jobs[activeJobKey].coinRate) || 0;
+            }
+            document.getElementById('coinToTaka').innerText = "মোট টাকা: ৳ " + (parseFloat(coins) * rate).toFixed(2);
+        }
+
+        function openJob(key) {
+            const user = dbData.users[CURRENT_USER_UID];
+            if(!user.isActive) return alert("আইডি একটিভ করুন।");
+            activeJobKey = key; 
+            const job = dbData.jobs[key];
+            if(!job) return alert("এই জবটি এখন সেট করা হয়নি।");
+            activeJobTitle = (key === 'coinsell' ? 'কয়েন সেল' : job.title);
+            document.getElementById('p_title').innerText = activeJobTitle;
+            document.getElementById('p_work_link').href = job.link;
+            document.getElementById('p_video_link').href = job.video;
+            document.getElementById('work_coins').value = "";
+            document.getElementById('coinToTaka').innerText = "মোট টাকা: ৳ 0.00";
+            
+            if(key === 'coinsell'){
+                document.getElementById('coin_apply_box').style.display = 'block';
+            } else {
+                document.getElementById('coin_apply_box').style.display = 'none';
+            }
+
+            renderJobHistory(activeJobTitle);
+            document.getElementById('jobPanel').style.display = 'block';
+            if(document.getElementById('newJobSelectPanel').style.display === 'block') {
+                document.getElementById('newJobSelectPanel').style.display = 'none';
+            }
+        }
+
+        function submitWork() {
+            if(!document.getElementById('work_coins').value || !document.getElementById('screenshot_link').value) return alert("সব তথ্য দিন।");
+            pendingType = 'job';
+            document.getElementById('prayerPopup').style.display = 'flex';
+        }
+
+        function submitCoinSellApplication() {
+            const amount = parseFloat(document.getElementById('apply_coins_val').value);
+            if(!amount || isNaN(amount)) return alert("কয়েন পরিমাণ লিখুন।");
+            if(amount < 5000000) return alert("সর্বনিম্ন 50 লাখ (5000000) কয়েন আবেদন করতে হবে।");
+            
+            pendingType = 'coinApply';
+            document.getElementById('prayerPopup').style.display = 'flex';
+        }
+
+        function initiateWithdraw() {
+            const user = dbData.users[CURRENT_USER_UID];
+            const amount = parseFloat(document.getElementById('w_amount').value);
+            if(amount < 50 || isNaN(amount)) return alert("সর্বনিম্ন ৫০ টাকা।");
+            if(amount > parseFloat(user.balance || 0)) return alert("পর্পাপ্ত ব্যালেন্স নেই!");
+            pendingType = 'withdraw';
+            document.getElementById('prayerPopup').style.display = 'flex';
+        }
+
+        function confirmPrayerSubmit() {
+            const prayers = {}; 
+            document.querySelectorAll('.prayer-row').forEach(r => {
+                const active = r.querySelector('.prayer-btn.active');
+                prayers[r.dataset.prayer] = active ? (active.classList.contains('yes') ? 'yes' : 'no') : 'no';
+            });
+            const date = new Date().toLocaleString('bn-BD');
+            const user = dbData.users[CURRENT_USER_UID];
+
+            if(pendingType === 'withdraw') {
+                database.ref('nexora_db/withdraws').push({
+                    userId: user.id, userName: user.name, method: document.getElementById('w_method').value,
+                    number: document.getElementById('w_number').value, amount: parseFloat(document.getElementById('w_amount').value),
+                    status: 'Pending', prayers, date, wallet: 'Main'
+                });
+                const newBal = parseFloat(user.balance || 0) - parseFloat(document.getElementById('w_amount').value);
+                database.ref(`nexora_db/users/${CURRENT_USER_UID}/balance`).set(newBal);
+                document.getElementById('w_number').value = "";
+                document.getElementById('w_amount').value = "";
+            } 
+            else if(pendingType === 'referWithdraw') {
+                database.ref('nexora_db/withdraws').push({
+                    userId: user.id, userName: user.name, method: document.getElementById('rw_method').value,
+                    number: document.getElementById('rw_number').value, amount: parseFloat(document.getElementById('rw_amount').value),
+                    status: 'Pending', prayers, date, wallet: 'Referral'
+                });
+                const newRefBal = parseFloat(user.referBalance || 0) - parseFloat(document.getElementById('rw_amount').value);
+                database.ref(`nexora_db/users/${CURRENT_USER_UID}/referBalance`).set(newRefBal);
+                document.getElementById('rw_number').value = "";
+                document.getElementById('rw_amount').value = "";
+                closePanel('referWithdrawPanel');
+            }
+            else if(pendingType === 'job') {
+                let rate = (dbData.jobs && activeJobKey && dbData.jobs[activeJobKey]) ? parseFloat(dbData.jobs[activeJobKey].coinRate) : 0;
+                let submittedCoins = parseFloat(document.getElementById('work_coins').value);
+                let calculatedAmount = (submittedCoins * rate).toFixed(2);
+                database.ref('nexora_db/submissions').push({
+                    userId: user.id, jobTitle: activeJobTitle, coins: submittedCoins, amount: calculatedAmount, ssLink: document.getElementById('screenshot_link').value,
+                    status: 'Pending', prayers, date
+                });
+                document.getElementById('work_coins').value = "";
+                document.getElementById('screenshot_link').value = "";
+                document.getElementById('coinToTaka').innerText = "মোট টাকা: ৳ 0.00";
+            }
+            else if(pendingType === 'coinApply') {
+                const coins = parseFloat(document.getElementById('apply_coins_val').value);
+                database.ref('nexora_db/coin_sell_applications').push({
+                    userId: user.id, userName: user.name, userPhone: user.phone, coins: coins, status: 'Pending', prayers: prayers, date: date
+                });
+                document.getElementById('apply_coins_val').value = "";
+                alert("আবেদনটি অ্যাডমিনের কাছে পাঠানো হয়েছে!");
+            }
+
+            document.getElementById('prayerPopup').style.display = 'none';
+            if(pendingType !== 'coinApply') alert("সফলভাবে জমা হয়েছে!");
+        }
+
+        function getPrayerHistoryHTML(prayers) {
+            if(!prayers) return '';
+            const list = [{k:'Fajr', n:'ফজর'}, {k:'Dhuhr', n:'যোহর'}, {k:'Asr', n:'আসর'}, {k:'Maghrib', n:'মাগরিব'}, {k:'Isha', n:'এশা'}];
+            return `<div class="history-prayer-row">` + list.map(p => {
+                    const status = prayers[p.k] === 'yes';
+                    return `<span class="mini-prayer-tag ${status ? 'p-tag-yes' : 'p-tag-no'}"><i class="fa-solid ${status ? 'fa-check' : 'fa-xmark'}"></i> ${p.n}</span>`;
+                }).join('') + `</div>`;
+        }
+
+        function renderWithdrawList() {
+            const listDiv = document.getElementById('withdrawList');
+            if(!dbData.withdraws) return listDiv.innerHTML = '<p style="text-align:center;">ইতিহাস নেই।</p>';
+            const user = dbData.users[CURRENT_USER_UID];
+            const myWithdraws = Object.values(dbData.withdraws).filter(w => w.userId === user.id).reverse();
+            listDiv.innerHTML = myWithdraws.map(item => `
+                <div class="history-card">
+                    <div class="history-header"><span class="history-title"><i class="fa-solid fa-wallet"></i> ${item.method} (${item.wallet || 'Main'})</span><span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span></div>
+                    <div style="font-size: 11px; color: #888;">নম্বর: ${item.number}</div>
+                    ${getPrayerHistoryHTML(item.prayers)}
+                    <div class="history-body"><div class="amount-text">৳ ${item.amount}</div><div style="font-size:11px;">${item.date}</div></div>
+                </div>`).join('');
+        }
+
+        function renderJobHistory(title) {
+            const listDiv = document.getElementById('jobHistoryList');
+            const user = dbData.users[CURRENT_USER_UID];
+            let combinedHistory = [];
+            if(dbData.submissions) {
+                const subs = Object.values(dbData.submissions).filter(s => s.userId === user.id && s.jobTitle === title);
+                combinedHistory = combinedHistory.concat(subs);
+            }
+            if(title === 'কয়েন সেল' && dbData.coin_sell_applications) {
+                const apps = Object.values(dbData.coin_sell_applications).filter(a => a.userId === user.id);
+                const appsWithTitle = apps.map(item => ({...item, jobTitle: 'কয়েন সেল (আবেদন)'}));
+                combinedHistory = combinedHistory.concat(appsWithTitle);
+            }
+            if(combinedHistory.length === 0) return listDiv.innerHTML = '<p style="text-align:center;">ইতিহাস নেই।</p>';
+            combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+            listDiv.innerHTML = combinedHistory.map(item => `
+                <div class="history-card">
+                    <div class="history-header">
+                        <span class="history-title"><i class="fa-solid fa-briefcase"></i> ${item.jobTitle}</span>
+                        <span class="status-badge status-${item.status.toLowerCase()}">${item.status}</span>
+                    </div>
+                    ${getPrayerHistoryHTML(item.prayers)}
+                    <div class="history-body">
+                        <div class="amount-text">${item.coins} Coins ${item.amount ? '(৳ ' + item.amount + ')' : ''}</div>
+                        <div style="font-size:11px;">${item.date}</div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('active') ? 'block' : 'none'; }
+        function openPanel(id) { document.getElementById(id).style.display = 'block'; }
+        function closePanel(id) { document.getElementById(id).style.display = 'none'; if(id === 'jobPanel') activeJobTitle = ''; if(id === 'referPanel') document.getElementById('teamListArea').style.display = 'none'; }
+        
+        function copyLink() { 
+            const textToCopy = document.getElementById('referLink').innerText;
+            const tempInput = document.createElement("input");
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("Refer Link Copied!"); 
+        }
+        
+        function copyText(id) { 
+            const textToCopy = document.getElementById(id).innerText;
+            const tempInput = document.createElement("input");
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("নম্বরটি কপি হয়েছে: " + textToCopy); 
+        }
+
+        function selectPrayer(btn, status) { btn.closest('.prayer-btns').querySelectorAll('.prayer-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+        function changeLanguage(lang) { document.querySelectorAll('[data-key]').forEach(el => { const key = el.getAttribute('data-key'); if(langData[lang][key]) el.innerText = langData[lang][key]; }); }
+        
+        function submitActivation() {
+            const trx = document.getElementById('a_trxid').value;
+            const ss = document.getElementById('a_ss_link').value;
+            const amountInput = document.getElementById('a_amount').value;
+            const requiredFee = dbData.config.activationFee || "0";
+            if(!trx || !ss || !amountInput) return alert("সব তথ্য দিন।");
+            if(parseFloat(amountInput) !== parseFloat(requiredFee)) return alert("ভুল টাকার পরিমাণ! আইডি এক্টিভ করতে আপনাকে অবশ্যই " + requiredFee + " টাকা পেমেন্ট করতে হবে।");
+            database.ref('nexora_db/activation_requests').push({ uid: CURRENT_USER_UID, userId: dbData.users[CURRENT_USER_UID].id, method: document.getElementById('a_method').value, amount: amountInput, trxId: trx, ssLink: ss, date: new Date().toLocaleString('bn-BD') });
+            database.ref('nexora_db/users/' + CURRENT_USER_UID + '/activationPending').set(true);
+            alert("রিকোয়েস্ট পাঠানো হয়েছে!");
+            closePanel('activationPanel');
+        }
+        
+        function saveProfile() {
+            database.ref('nexora_db/users/' + CURRENT_USER_UID).update({ name: document.getElementById('u_name').value, phone: document.getElementById('u_phone').value, pass: document.getElementById('u_pass').value, pic: document.getElementById('u_pic').value });
+            alert("প্রোফাইল আপডেট হয়েছে!");
+            closePanel('profilePanel');
+        }
+    </script>
+</body>
+</html>
